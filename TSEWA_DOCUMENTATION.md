@@ -574,32 +574,125 @@ The database contains **22 models** organized into 7 domains:
 
 Base URL: `http://localhost:3001/api`
 
-All authenticated routes require: `Authorization: Bearer <accessToken>`
+## Authentication Header
+All authenticated routes require:
+```
+Authorization: Bearer <accessToken>
+```
+The access token is a JWT signed with `JWT_SECRET`, containing `{ userId, email }`, valid for 15 minutes.
 
-## Authentication
-
-| Method | Endpoint | Body | Description |
-|--------|----------|------|-------------|
-| POST | `/auth/register` | `{ email, password, inviteCode? }` | Register new user |
-| POST | `/auth/login` | `{ email, password }` | Login, returns JWT pair |
-| POST | `/auth/refresh` | `{ refreshToken }` | Refresh access token |
-| POST | `/auth/logout` | — | Invalidate refresh token |
-
-**Register Response:**
+## Error Response Format
+All errors follow this structure:
 ```json
 {
-  "user": { "id": "cuid", "email": "...", "isActive": false },
-  "accessToken": "jwt...",
-  "refreshToken": "jwt..."
+  "error": "Human-readable error message",
+  "details": { }  // Optional: Zod validation details on 400 errors
 }
 ```
 
-**Login Response:**
+**Common Status Codes:**
+| Code | Meaning |
+|------|---------|
+| 200 | Success |
+| 201 | Created |
+| 400 | Validation error / Bad request |
+| 401 | Authentication required / Token expired / Invalid token |
+| 403 | Forbidden (not authorized for this action) |
+| 404 | Resource not found |
+| 409 | Conflict (e.g., email already registered) |
+| 500 | Internal server error |
+
+---
+
+## 6.1 Authentication (`/api/auth`)
+
+### POST `/api/auth/register`
+Register a new user account. Creates User + WaitlistEntry. If a valid invite code is provided, the user is auto-approved.
+
+**Request Body:**
 ```json
 {
-  "user": { "id": "cuid", "email": "...", "isActive": true },
-  "accessToken": "jwt...",
-  "refreshToken": "jwt..."
+  "email": "tenzin@example.com",         // required, valid email
+  "password": "mypassword123",           // required, 8-128 characters
+  "inviteCode": "TSEWA1"                 // optional, 6-char code
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "user": {
+    "id": "cmnvbp94m000039cgwng5x9hz",
+    "email": "tenzin@example.com",
+    "isActive": true                     // true if valid inviteCode, else false
+  },
+  "accessToken": "eyJhbGciOiJIUzI1NiI...",   // JWT, 15-min expiry
+  "refreshToken": "eyJhbGciOiJIUzI1NiI..."    // JWT, 7-day expiry
+}
+```
+Also sets `refreshToken` as httpOnly cookie on path `/api/auth`.
+
+**Errors:**
+- 400: Validation failed (bad email format, password too short)
+- 409: Email already registered
+
+### POST `/api/auth/login`
+Authenticate with email and password.
+
+**Request Body:**
+```json
+{
+  "email": "tenzin@example.com",      // required, valid email
+  "password": "mypassword123"         // required, non-empty
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "user": {
+    "id": "cmnvbp94m000039cgwng5x9hz",
+    "email": "tenzin@example.com",
+    "isActive": true
+  },
+  "accessToken": "eyJhbGciOiJIUzI1NiI...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiI..."
+}
+```
+
+**Errors:**
+- 400: Validation failed
+- 401: Invalid email or password
+
+### POST `/api/auth/refresh`
+Get a new access token using a refresh token. Accepts token from request body OR from httpOnly cookie.
+
+**Request Body:**
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiI..."  // or sent via cookie
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiI...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiI..."
+}
+```
+
+**Errors:**
+- 400: Refresh token required
+- 401: Invalid or expired refresh token
+
+### POST `/api/auth/logout` (Authenticated)
+Invalidate the refresh token. Blacklists it in Redis.
+
+**Success Response (200):**
+```json
+{
+  "message": "Logged out successfully"
 }
 ```
 
@@ -1246,7 +1339,209 @@ Community posts from Dolma (thukpa restaurant), Lobsang (coding meetup), Pema (m
 
 ---
 
-# 14. Setup & Deployment
+# 14. Server Architecture & Setup
+
+## Server Startup Sequence
+
+When the server starts (`apps/server/src/index.ts`), it executes in this order:
+
+1. **Load Environment**: dotenv loads `.env` from both `apps/server/.env` and root `../../.env`
+2. **Create Express App**: Initialize Express with middleware chain
+3. **Create Upload Directories**: Ensure `uploads/photos/` and `uploads/voice/` exist
+4. **Mount Routes**: All REST routes mounted at `/api`
+5. **Create HTTP Server**: Node.js `http.createServer(app)`
+6. **Attach Socket.io**: WebSocket server attached to HTTP server
+7. **Listen**: Server binds to PORT (default 3001)
+
+## Middleware Chain
+
+Requests pass through this middleware chain in order:
+
+```
+Request
+  │
+  ├─ 1. helmet()          — Security headers (CSP, HSTS, XSS protection)
+  │                          crossOriginResourcePolicy: 'cross-origin' (for uploads)
+  │
+  ├─ 2. cors()            — CORS with credentials, origins from CORS_ORIGIN env var
+  │                          Allowed: http://localhost:8081, :19006, :3000
+  │
+  ├─ 3. express.json()    — Parse JSON bodies, limit: 10mb
+  │
+  ├─ 4. express.urlencoded() — Parse URL-encoded bodies
+  │
+  ├─ 5. cookieParser()    — Parse cookies (for httpOnly refresh token)
+  │
+  ├─ 6. /uploads (static) — Serve uploaded files (photos, voice notes)
+  │
+  ├─ 7. /api (routes)     — REST API routes
+  │     │
+  │     ├─ /api/auth/*         — No auth required (register, login, refresh)
+  │     ├─ /api/auth/logout    — authMiddleware required
+  │     └─ /api/* (all others) — authMiddleware required
+  │
+  ├─ 8. 404 handler       — { error: "Route not found" }
+  │
+  └─ 9. Global error handler — Catches Multer errors, returns 500
+```
+
+## Authentication Middleware (`authMiddleware`)
+
+Extracts JWT from either:
+1. `Authorization: Bearer <token>` header (primary)
+2. `accessToken` cookie (fallback)
+
+Verification:
+- Decodes JWT with `JWT_SECRET`
+- Extracts `{ userId, email }` from payload
+- Attaches to `req.user = { id, email }`
+
+Error responses:
+- 401 `"Authentication required"` — No token provided
+- 401 `"Token expired"` — JWT expired (15-min window)
+- 401 `"Invalid token"` — Malformed or wrong-signed JWT
+
+## File Upload Middleware (Multer)
+
+Two upload configurations:
+
+**Photo Upload (`photoUpload`):**
+- Storage: `uploads/photos/` with UUID filenames
+- Max size: **5MB**
+- Allowed MIME types: `image/jpeg`, `image/png`, `image/webp`
+- Error: `"Only JPG, PNG, and WebP images are allowed"`
+
+**Voice Upload (`voiceUpload`):**
+- Storage: `uploads/voice/` with UUID filenames
+- Max size: **2MB**
+- Allowed MIME types: `audio/mp4`, `audio/m4a`, `audio/mpeg`, `audio/mp3`, `audio/webm`
+- Error: `"Only M4A, MP3, and WebM audio files are allowed"`
+
+## Socket.io Setup
+
+**Connection**: `ws://localhost:3001`
+
+**Authentication**: JWT middleware on handshake
+```javascript
+// Client connects with:
+const socket = io('ws://localhost:3001', {
+  auth: { token: accessToken }
+});
+```
+
+Server verifies token on connection:
+1. Extract token from `socket.handshake.auth.token` or `Authorization` header
+2. Verify JWT with `JWT_SECRET`
+3. Attach `socket.user = { id, email }`
+4. Auto-join user's personal room: `user:<userId>` (for direct notifications)
+
+**Configuration:**
+- Ping timeout: 60,000ms
+- Ping interval: 25,000ms
+- CORS: same as Express (from CORS_ORIGIN env var)
+
+**Handler Registration:**
+On each connection, two handler modules are registered:
+- `chat.handler.ts` — 1:1 messaging events
+- `room.handler.ts` — Room + watch party + audio signaling events
+
+## Route Mount Map
+
+```
+/api
+├── /health              — GET  (no auth)
+├── /auth
+│   ├── /register        — POST (no auth)
+│   ├── /login           — POST (no auth)
+│   ├── /refresh         — POST (no auth)
+│   └── /logout          — POST (auth required)
+├── /profile             — All auth required
+│   ├── /                — GET, PUT
+│   ├── /photos          — POST (multipart)
+│   ├── /photos/:id      — DELETE
+│   ├── /prompts         — POST
+│   └── /categories      — PUT
+├── /discovery           — All auth required
+│   ├── /deck            — GET (?category=&limit=)
+│   └── /daily-picks     — GET
+├── /swipe               — POST (auth required)
+├── /matches             — All auth required
+│   ├── /                — GET
+│   └── /:id             — DELETE
+├── /messages            — All auth required
+│   ├── /:matchId        — GET (?cursor=&limit=)
+│   └── /:matchId/upload — POST (multipart)
+├── /events              — All auth required
+│   ├── /                — POST, GET
+│   ├── /:id             — GET, PUT, DELETE
+│   └── /:id/rsvp        — POST
+├── /feed                — All auth required
+│   ├── /                — POST, GET
+│   ├── /:id             — GET, DELETE
+│   ├── /:id/like        — POST
+│   └── /:id/comment     — POST
+├── /rooms               — All auth required
+│   ├── /channels        — GET
+│   ├── /scheduled       — GET
+│   ├── /                — POST, GET
+│   ├── /:id             — GET, DELETE
+│   ├── /:id/join        — POST
+│   ├── /:id/leave       — POST
+│   ├── /:id/raise-hand  — POST
+│   ├── /:id/invite-speaker  — POST
+│   ├── /:id/mute-speaker    — POST
+│   ├── /:id/remove-speaker  — POST
+│   ├── /:id/messages    — GET, POST
+│   ├── /:id/watch-party — POST
+│   └── /:id/rsvp        — POST
+├── /waitlist
+│   └── /status          — GET (auth required)
+└── /invite
+    ├── /redeem          — POST (auth required)
+    └── /generate        — POST (auth required)
+```
+
+**Total: 49 endpoints**
+
+## JWT Token Strategy
+
+| Token | Secret | Expiry | Storage |
+|-------|--------|--------|---------|
+| Access Token | JWT_SECRET | 15 minutes | Client memory + SecureStore |
+| Refresh Token | JWT_REFRESH_SECRET | 7 days | Redis (server) + httpOnly cookie + SecureStore |
+
+**Token Payload:**
+```json
+{
+  "userId": "cmnvbp94m000039cgwng5x9hz",
+  "email": "tenzin@example.com",
+  "iat": 1775971709,
+  "exp": 1775972609
+}
+```
+
+**Refresh Flow:**
+1. Access token expires (401 response)
+2. Client Axios interceptor catches 401
+3. Sends POST `/api/auth/refresh` with refresh token
+4. Server verifies refresh token, checks Redis blacklist
+5. Returns new access token + new refresh token
+6. Original request retried with new token
+7. If refresh fails → user logged out
+
+## Database Connection
+
+**Prisma Client** (`config/prisma.ts`):
+- Singleton instance, reused across all requests
+- Query logging enabled in development
+- Connection string from `DATABASE_URL` env var
+
+**Redis Client** (`config/redis.ts`):
+- ioredis with retry strategy
+- Used for: refresh token storage/blacklisting, rate limiting
+- Connection string from `REDIS_URL` env var
+
+---
 
 ## Prerequisites
 - Node.js v20+
