@@ -1,0 +1,12 @@
+{
+  "name": "tsewa",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:server": "npm run dev --workspace=apps/server",
+    "dev:mobile": "npm run start --workspace=apps/mobile",
+    "db:migrate": "npm run migrate --workspace=apps/server",
+    "db:seed": "npm run seed --workspace=apps/server",
+    "db:generate": "npm run generate --workspace=apps/server"
+  }
+}

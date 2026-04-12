@@ -1,0 +1,523 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========================
+// ENUMS
+// ========================
+
+enum Region {
+  U_TSANG
+  KHAM
+  AMDO
+  DIASPORA
+}
+
+enum Dialect {
+  LHASA
+  KHAM
+  AMDO
+  OTHER
+}
+
+enum BuddhistPractice {
+  GELUG
+  KAGYU
+  NYINGMA
+  SAKYA
+  BON
+  SECULAR
+  OTHER
+}
+
+enum Diet {
+  VEGETARIAN
+  VEGAN
+  NON_VEGETARIAN
+  FLEXIBLE
+}
+
+enum FamilyView {
+  WANT_CHILDREN
+  OPEN_TO_CHILDREN
+  DO_NOT_WANT
+  HAVE_CHILDREN
+  UNDECIDED
+}
+
+enum SwipeAction {
+  LIKE
+  PASS
+  SUPER_LIKE
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VOICE
+  VIDEO_CALL_INVITE
+  GIF
+  SYSTEM
+}
+
+enum EventType {
+  LOSAR
+  TEACHING
+  COMMUNITY
+  SOCIAL
+  CULTURAL
+  OTHER
+}
+
+enum FeedPostType {
+  TEXT
+  PHOTO
+  LINK
+  EVENT_SHARE
+}
+
+enum WaitlistStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RoomType {
+  OPEN
+  SCHEDULED
+  TOPIC_CHANNEL
+  EVENT_LINKED
+}
+
+enum RoomStatus {
+  WAITING
+  LIVE
+  ENDED
+}
+
+enum RoomRole {
+  HOST
+  SPEAKER
+  LISTENER
+}
+
+// ========================
+// CORE: USER + PROFILE
+// ========================
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  isActive        Boolean   @default(false)
+  isVerified      Boolean   @default(false)
+  lastActiveAt    DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  profile         Profile?
+  photos          Photo[]
+  prompts         ConversationPrompt[]
+  sentSwipes      Swipe[]       @relation("swiper")
+  receivedSwipes  Swipe[]       @relation("swiped")
+  matchesAsA      Match[]       @relation("matchUserA")
+  matchesAsB      Match[]       @relation("matchUserB")
+  sentMessages    Message[]     @relation("sender")
+  events          Event[]       @relation("eventCreator")
+  eventRsvps      EventRsvp[]
+  feedPosts       FeedPost[]
+  feedComments    FeedComment[]
+  feedLikes       FeedLike[]
+  waitlistEntry   WaitlistEntry?
+  invitesSent     InviteCode[]  @relation("inviter")
+  dailyPicks      DailyPick[]   @relation("pickFor")
+  dailyPickedAs   DailyPick[]   @relation("pickedUser")
+  blockedUsers    Block[]       @relation("blocker")
+  blockedByUsers  Block[]       @relation("blocked")
+  reports         Report[]
+  hostedRooms     Room[]        @relation("roomHost")
+  roomParticipations RoomParticipant[]
+  roomMessages    RoomMessage[]
+  roomRsvps       RoomScheduleRsvp[]
+
+  @@index([email])
+  @@index([isActive])
+  @@index([lastActiveAt])
+}
+
+model Profile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  displayName     String
+  birthDate       DateTime
+  gender          String
+  bio             String?   @db.Text
+  height          Int?
+
+  region          Region
+  dialect         Dialect?
+  buddhaPractice  BuddhistPractice?
+  hometown        String?
+
+  education       String?
+  profession      String?
+  languages       String[]
+  diet            Diet?
+  familyViews     FamilyView?
+  smoking         Boolean?
+  drinking        Boolean?
+
+  currentCity     String?
+  currentCountry  String?
+  latitude        Float?
+  longitude       Float?
+
+  lookingForGender    String[]
+  ageMin              Int       @default(18)
+  ageMax              Int       @default(50)
+  maxDistance          Int       @default(100)
+  regionFilter        Region[]
+
+  activeCategories    String[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([region])
+  @@index([currentCountry])
+  @@index([latitude, longitude])
+}
+
+model Photo {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url         String
+  position    Int      @default(0)
+  isMain      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ConversationPrompt {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question    String
+  answer      String   @db.Text
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ========================
+// MATCHING
+// ========================
+
+model Swipe {
+  id          String      @id @default(cuid())
+  swiperId    String
+  swiper      User        @relation("swiper", fields: [swiperId], references: [id], onDelete: Cascade)
+  swipedId    String
+  swiped      User        @relation("swiped", fields: [swipedId], references: [id], onDelete: Cascade)
+  action      SwipeAction
+  createdAt   DateTime    @default(now())
+
+  @@unique([swiperId, swipedId])
+  @@index([swipedId])
+  @@index([swiperId, action])
+}
+
+model Match {
+  id          String    @id @default(cuid())
+  userAId     String
+  userA       User      @relation("matchUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userBId     String
+  userB       User      @relation("matchUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  isActive    Boolean   @default(true)
+  chatRoom    String    @unique @default(cuid())
+  createdAt   DateTime  @default(now())
+
+  messages    Message[]
+
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+}
+
+model DailyPick {
+  id           String   @id @default(cuid())
+  forUserId    String
+  forUser      User     @relation("pickFor", fields: [forUserId], references: [id], onDelete: Cascade)
+  pickedUserId String
+  pickedUser   User     @relation("pickedUser", fields: [pickedUserId], references: [id], onDelete: Cascade)
+  date         DateTime @db.Date
+  createdAt    DateTime @default(now())
+
+  @@unique([forUserId, pickedUserId, date])
+  @@index([forUserId, date])
+}
+
+// ========================
+// CHAT
+// ========================
+
+model Message {
+  id          String      @id @default(cuid())
+  matchId     String
+  match       Match       @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User        @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+  type        MessageType @default(TEXT)
+  content     String      @db.Text
+  metadata    Json?
+  isRead      Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  @@index([matchId, createdAt])
+  @@index([senderId])
+}
+
+// ========================
+// EVENTS & FEED
+// ========================
+
+model Event {
+  id          String    @id @default(cuid())
+  creatorId   String
+  creator     User      @relation("eventCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  title       String
+  titleTib    String?
+  description String    @db.Text
+  descTib     String?   @db.Text
+  type        EventType
+  imageUrl    String?
+  location    String?
+  city        String?
+  country     String?
+  latitude    Float?
+  longitude   Float?
+  startDate   DateTime
+  endDate     DateTime?
+  isOnline    Boolean   @default(false)
+  link        String?
+  maxAttendees Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  rsvps       EventRsvp[]
+  linkedRoom  Room?     @relation("eventRoom")
+
+  @@index([startDate])
+  @@index([city])
+  @@index([type])
+}
+
+model EventRsvp {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, userId])
+}
+
+model FeedPost {
+  id          String       @id @default(cuid())
+  authorId    String
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  type        FeedPostType @default(TEXT)
+  content     String       @db.Text
+  imageUrl    String?
+  linkUrl     String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  comments    FeedComment[]
+  likes       FeedLike[]
+
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model FeedComment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
+
+model FeedLike {
+  id        String   @id @default(cuid())
+  postId    String
+  post      FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+// ========================
+// WAITLIST & INVITES
+// ========================
+
+model WaitlistEntry {
+  id          String         @id @default(cuid())
+  userId      String         @unique
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      WaitlistStatus @default(PENDING)
+  inviteCode  String?
+  referredBy  String?
+  createdAt   DateTime       @default(now())
+  approvedAt  DateTime?
+
+  @@index([status])
+  @@index([inviteCode])
+}
+
+model InviteCode {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  inviterId   String
+  inviter     User     @relation("inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  maxUses     Int      @default(3)
+  usedCount   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+
+  @@index([code])
+}
+
+// ========================
+// SAFETY
+// ========================
+
+model Block {
+  id          String   @id @default(cuid())
+  blockerId   String
+  blocker     User     @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId   String
+  blocked     User     @relation("blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+}
+
+model Report {
+  id           String   @id @default(cuid())
+  reporterId   String
+  reporter     User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  targetUserId String?
+  reason       String   @db.Text
+  createdAt    DateTime @default(now())
+
+  @@index([reporterId])
+}
+
+// ========================
+// ROOMS (Clubhouse + Watch Parties)
+// ========================
+
+model Room {
+  id            String     @id @default(cuid())
+  hostId        String
+  host          User       @relation("roomHost", fields: [hostId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?    @db.Text
+  type          RoomType   @default(OPEN)
+  topicTag      String?
+  status        RoomStatus @default(WAITING)
+  scheduledAt   DateTime?
+  eventId       String?    @unique
+  event         Event?     @relation("eventRoom", fields: [eventId], references: [id], onDelete: SetNull)
+  maxSpeakers   Int        @default(8)
+  isWatchParty  Boolean    @default(false)
+  videoUrl      String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  participants  RoomParticipant[]
+  messages      RoomMessage[]
+  rsvps         RoomScheduleRsvp[]
+  watchPartyState WatchPartyState?
+
+  @@index([status])
+  @@index([type])
+  @@index([scheduledAt])
+}
+
+model RoomParticipant {
+  id          String   @id @default(cuid())
+  roomId      String
+  room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        RoomRole @default(LISTENER)
+  handRaised  Boolean  @default(false)
+  isMuted     Boolean  @default(false)
+  joinedAt    DateTime @default(now())
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+}
+
+model RoomMessage {
+  id        String   @id @default(cuid())
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([roomId, createdAt])
+}
+
+model RoomScheduleRsvp {
+  id        String   @id @default(cuid())
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([roomId, userId])
+}
+
+model TopicChannel {
+  id          String @id @default(cuid())
+  name        String @unique
+  nameTib     String?
+  description String?
+  iconEmoji   String?
+  position    Int    @default(0)
+  roomId      String?
+}
+
+model WatchPartyState {
+  id          String   @id @default(cuid())
+  roomId      String   @unique
+  room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  videoUrl    String
+  isPlaying   Boolean  @default(false)
+  currentTime Float    @default(0)
+  updatedAt   DateTime @updatedAt
+}

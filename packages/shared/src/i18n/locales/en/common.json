@@ -1,0 +1,15 @@
+{
+  "appName": "Tsewa",
+  "appTagline": "Find your person",
+  "continue": "Continue",
+  "cancel": "Cancel",
+  "save": "Save",
+  "skip": "Skip",
+  "back": "Back",
+  "done": "Done",
+  "loading": "Loading...",
+  "error": "Something went wrong",
+  "retry": "Try again",
+  "search": "Search",
+  "noResults": "No results found"
+}

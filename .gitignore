@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.expo/
+.turbo/
+*.tsbuildinfo
+.env
+.env.local
+uploads/*
+!uploads/.gitkeep
+ios/
+android/
+web-build/
