@@ -20,14 +20,17 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface DailyPickGridProps {
   picks: DeckProfile[];
-  refreshesAt: string;
+  refreshesAt?: string;
 }
 
 const REGION_COLORS: Record<string, string> = {
-  'U-Tsang': colors.lavender,
-  'Kham': colors.peach,
-  'Amdo': '#6BBFA3',
-  'Diaspora': colors.lavenderDark,
+  'India': colors.peach,
+  'Nepal': '#6BBFA3',
+  'North America': colors.lavender,
+  'Europe': colors.lavenderDark,
+  'Australia & NZ': '#5BA8C8',
+  'East Asia': '#E8A87C',
+  'Tibet': '#C4A35A',
 };
 
 function calculateAge(birthDate: string): number {
@@ -41,13 +44,30 @@ function calculateAge(birthDate: string): number {
   return age;
 }
 
-function CountdownTimer({ refreshesAt }: { refreshesAt: string }) {
+function CountdownTimer({ refreshesAt }: { refreshesAt?: string }) {
   const [timeLeft, setTimeLeft] = useState('');
 
   useEffect(() => {
+    if (!refreshesAt) {
+      // No refresh time from API — calculate next midnight
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      const diff = tomorrow.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      setTimeLeft(`${hours}h ${minutes}m`);
+      return;
+    }
+
     const updateTimer = () => {
       const now = new Date().getTime();
       const target = new Date(refreshesAt).getTime();
+      if (isNaN(target)) {
+        setTimeLeft('Tomorrow');
+        return;
+      }
       const diff = target - now;
 
       if (diff <= 0) {
@@ -72,21 +92,27 @@ function CountdownTimer({ refreshesAt }: { refreshesAt: string }) {
   return (
     <View style={styles.timerContainer}>
       <Text style={styles.timerLabel}>New picks in</Text>
-      <Text style={styles.timerValue}>{timeLeft}</Text>
+      <Text style={styles.timerValue}>{timeLeft || 'Tomorrow'}</Text>
     </View>
   );
 }
 
-function PickCard({ profile, cardWidth }: { profile: DeckProfile; cardWidth: number }) {
+function PickCard({ profile: pickData, cardWidth }: { profile: DeckProfile | any; cardWidth: number }) {
   const router = useRouter();
-  const age = calculateAge(profile.birthDate);
-  const mainPhoto = profile.photos.find((p) => p.isMain) || profile.photos[0];
+  // Handle both flat DeckProfile and nested { profile, photos } shapes from API
+  const profile = pickData.profile || pickData;
+  const photos = pickData.photos || profile.photos || [];
+  const displayName = profile.displayName || 'Unknown';
+  const birthDate = profile.birthDate;
+  const age = birthDate ? calculateAge(birthDate) : null;
+  const userId = pickData.userId || profile.userId;
+  const mainPhoto = photos.find((p: any) => p.isMain) || photos[0];
   const regionColor = REGION_COLORS[profile.region] || colors.lavenderLight;
 
   return (
     <Pressable
       style={[styles.pickCard, { width: cardWidth }]}
-      onPress={() => router.push(`/profile-view/${profile.userId}`)}
+      onPress={() => router.push(`/profile-view/${userId}`)}
     >
       <Image
         source={{ uri: mainPhoto?.url || PLACEHOLDER_IMAGES.avatar }}
@@ -95,11 +121,11 @@ function PickCard({ profile, cardWidth }: { profile: DeckProfile; cardWidth: num
       />
       <View style={styles.pickOverlay}>
         <Text style={styles.pickName}>
-          {profile.displayName}, {age}
+          {displayName}{age != null ? `, ${age}` : ''}
         </Text>
         {profile.region && (
           <View style={[styles.pickRegionBadge, { backgroundColor: regionColor }]}>
-            <Text style={styles.pickRegionText}>{profile.region}</Text>
+            <Text style={styles.pickRegionText}>{profile.region.replace(/_/g, ' ')}</Text>
           </View>
         )}
       </View>
