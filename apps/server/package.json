@@ -9,7 +9,18 @@
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
     "seed": "tsx prisma/seed.ts",
-    "studio": "prisma studio"
+    "studio": "prisma studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:auth": "vitest run src/__tests__/auth.test.ts",
+    "test:profile": "vitest run src/__tests__/profile-discovery.test.ts",
+    "test:swipe": "vitest run src/__tests__/swipe-matching.test.ts",
+    "test:waitlist": "vitest run src/__tests__/waitlist-invite.test.ts",
+    "test:feed": "vitest run src/__tests__/feed-events.test.ts",
+    "test:rooms": "vitest run src/__tests__/rooms.test.ts",
+    "test:ui": "vitest run --config vitest.config.e2e.ts",
+    "test:pw": "npx playwright test --config playwright.config.ts",
+    "test:pw:headed": "npx playwright test --config playwright.config.ts --headed"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
@@ -18,6 +29,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.0",
     "express": "^4.21.0",
+    "express-rate-limit": "^8.3.2",
     "helmet": "^8.0.0",
     "ioredis": "^5.4.0",
     "jsonwebtoken": "^9.0.2",
@@ -31,6 +43,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
@@ -39,9 +52,13 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^22.0.0",
     "@types/node-cron": "^3.0.11",
+    "@types/supertest": "^7.2.0",
     "@types/uuid": "^10.0.0",
+    "playwright": "^1.59.1",
     "prisma": "^6.5.0",
+    "supertest": "^7.2.2",
     "tsx": "^4.19.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.4"
   }
 }

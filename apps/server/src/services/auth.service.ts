@@ -22,6 +22,7 @@ export function generateTokens(userId: string, email: string) {
 }
 
 export async function register(email: string, password: string, inviteCode?: string) {
+  email = email.toLowerCase();
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     throw new Error('Email already registered');
@@ -85,6 +86,7 @@ export async function register(email: string, password: string, inviteCode?: str
 }
 
 export async function login(email: string, password: string) {
+  email = email.toLowerCase();
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     throw new Error('Invalid email or password');

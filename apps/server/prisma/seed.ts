@@ -642,11 +642,43 @@ async function main() {
     });
 
     // Create photos (3-4 per user)
-    const photoSeeds = [
-      `${userData.firstName}`,
-      `${userData.firstName}${userData.lastName}`,
-      `${userData.firstName.toLowerCase()}${userData.age}`,
-      `${userData.lastName.toLowerCase()}${userData.firstName.toLowerCase()}`,
+    const femalePhotoIds = [
+      '1544005313-94ddf0286df2',
+      '1534528741-775b370b70e3',
+      '1531746020798-e6953c6e8e04',
+      '1494790108377-be9c29b29330',
+      '1517841905240-472988babdf9',
+      '1524504388940-b1c1722653e1',
+      '1529626455594-4ff0802cfb7e',
+      '1488426862026-3ee34a7d66df',
+      '1502823403499-6ccfcf4fb453',
+      '1513956589380-bad6acb9b9d4',
+    ];
+
+    const malePhotoIds = [
+      '1507003211169-0a1dd7228f2d',
+      '1500648767791-00dcc994a43e',
+      '1506794778202-cad84cf45f1d',
+      '1472099645785-5658abf4ff4e',
+      '1519085360753-af0119f7cbe7',
+      '1522075469751-3a6694fb2f61',
+      '1504257432389-52343af06ae3',
+      '1531384441138-2736e62e0919',
+      '1513956589380-bad6acb9b9d4',
+      '1492562080023-ab3db95bfbce',
+    ];
+
+    const femaleIndex = femaleUsers.indexOf(userData as typeof femaleUsers[number]);
+    const maleIndex = maleUsers.indexOf(userData as typeof maleUsers[number]);
+    const primaryPhotoId = userData.gender === 'Female'
+      ? femalePhotoIds[femaleIndex >= 0 ? femaleIndex : 0]
+      : malePhotoIds[maleIndex >= 0 ? maleIndex : 0];
+
+    const cropVariants = [
+      `?w=600&h=800&fit=crop&crop=faces`,
+      `?w=600&h=800&fit=crop&crop=face&q=80`,
+      `?w=600&h=600&fit=crop&crop=entropy`,
+      `?w=600&h=800&fit=crop&crop=top`,
     ];
 
     const photoCount = userData.age % 2 === 0 ? 4 : 3;
@@ -654,7 +686,7 @@ async function main() {
       await prisma.photo.create({
         data: {
           userId: user.id,
-          url: `https://api.dicebear.com/7.x/avataaars/png?seed=${photoSeeds[i]}`,
+          url: `https://images.unsplash.com/photo-${primaryPhotoId}${cropVariants[i]}`,
           position: i,
           isMain: i === 0,
         },
@@ -728,6 +760,7 @@ async function main() {
       titleTib: 'ལོ་གསར་སྲུང་བརྩི།',
       description: 'Join us for the grandest Losar celebration in Dharamsala! Traditional dances, music performances, khapse tasting, and butter sculpture exhibitions. A wonderful opportunity to ring in the Tibetan New Year with our community. All ages welcome. Traditional dress encouraged!',
       type: EventType.LOSAR,
+      imageUrl: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800&h=400&fit=crop',
       location: 'Tibetan Institute of Performing Arts',
       city: 'Dharamsala',
       country: 'India',
@@ -744,6 +777,7 @@ async function main() {
       titleTib: 'བསམ་གཏན་དང་དྲན་པ་ཉེར་གཞག',
       description: 'A guided meditation and mindfulness workshop open to all levels. We will explore shamatha (calm abiding) and vipassana (insight) meditation techniques rooted in the Tibetan Buddhist tradition. Perfect for beginners and experienced practitioners alike. Zoom link will be shared upon RSVP.',
       type: EventType.TEACHING,
+      imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=800&h=400&fit=crop',
       location: 'Online — Zoom',
       startDate: new Date('2026-04-18T14:00:00Z'),
       endDate: new Date('2026-04-18T16:00:00Z'),
@@ -756,6 +790,7 @@ async function main() {
       title: 'Tibetan Film Night: The Sun Behind the Clouds',
       description: 'Screening of the award-winning documentary "The Sun Behind the Clouds: Tibet\'s Struggle for Freedom" followed by a panel discussion with Tibetan community leaders. Light Tibetan snacks will be served. This is a rare opportunity to watch this powerful film on the big screen and discuss its relevance today.',
       type: EventType.CULTURAL,
+      imageUrl: 'https://images.unsplash.com/photo-1493997181344-712f2f19d87a?w=800&h=400&fit=crop',
       location: 'Tibet House US',
       city: 'New York',
       country: 'USA',
@@ -772,6 +807,7 @@ async function main() {
       titleTib: 'སྐད་ཡིག་བརྗེ་རེས་འཚོགས་འདུ།',
       description: 'Practice your Tibetan (Lhasa, Kham, or Amdo dialect) in a friendly, informal setting! Paired conversation practice, group games, and cultural sharing. All levels welcome — from complete beginners to native speakers looking to help. Coffee and cha ngarmo provided.',
       type: EventType.SOCIAL,
+      imageUrl: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800&h=400&fit=crop',
       location: 'Tibetan Canadian Cultural Centre',
       city: 'Toronto',
       country: 'Canada',
@@ -788,6 +824,7 @@ async function main() {
       titleTib: 'ཁམས་ཀྱི་གཞས་བྲོ་དགོང་མོ།',
       description: 'An evening celebrating the rich dance traditions of Kham! Learn traditional Khampa dances, enjoy live music featuring dranyen and piwang, and connect with fellow Kham community members. No experience necessary — just bring your energy and enthusiasm. Traditional Kham attire welcome!',
       type: EventType.CULTURAL,
+      imageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=400&fit=crop',
       location: 'Tibetan Community Centre',
       city: 'London',
       country: 'UK',
@@ -817,8 +854,9 @@ async function main() {
   const feedPosts = [
     {
       authorId: dolma.id,
-      type: FeedPostType.TEXT,
+      type: FeedPostType.PHOTO,
       content: 'Just had the most amazing thukpa at a little restaurant in McLeod Ganj. Nothing beats home cooking! 🍜',
+      imageUrl: 'https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?w=800&h=600&fit=crop',
     },
     {
       authorId: lobsang.id,
@@ -827,18 +865,21 @@ async function main() {
     },
     {
       authorId: pema.id,
-      type: FeedPostType.TEXT,
+      type: FeedPostType.PHOTO,
       content: 'Beautiful morning practice today. Grateful for this community that keeps our traditions alive 🙏',
+      imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=800&h=600&fit=crop',
     },
     {
       authorId: karmaWangchuk.id,
-      type: FeedPostType.TEXT,
+      type: FeedPostType.PHOTO,
       content: 'New track dropping next week — blending traditional Tibetan instruments with electronic beats. Stay tuned! 🎵',
+      imageUrl: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&h=600&fit=crop',
     },
     {
       authorId: tashiDolma.id,
-      type: FeedPostType.TEXT,
+      type: FeedPostType.PHOTO,
       content: 'Spent the weekend volunteering at the Tibetan Children\'s Village. These kids are incredible. ❤️',
+      imageUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&h=600&fit=crop',
     },
   ];
 

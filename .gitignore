@@ -10,3 +10,8 @@ uploads/*
 ios/
 android/
 web-build/
+
+# Test artifacts
+apps/server/playwright-report/
+apps/server/screenshots/
+apps/server/test-results/

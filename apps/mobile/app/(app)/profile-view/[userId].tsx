@@ -16,6 +16,7 @@ import { useQuery } from '@tanstack/react-query';
 import { colors } from '../../../src/theme/colors';
 import { typography, fontSize, fontWeight } from '../../../src/theme/typography';
 import { scale } from '../../../src/theme/responsive';
+import { PLACEHOLDER_IMAGES } from '../../../src/constants/images';
 import { api } from '../../../src/lib/api';
 import { Button } from '../../../src/components/ui/Button';
 import type { DeckProfile } from '../../../src/modules/discovery/api';
@@ -136,9 +137,10 @@ export default function ProfileViewScreen() {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <Image
-                source={{ uri: item.url }}
+                source={{ uri: item.url || PLACEHOLDER_IMAGES.avatar }}
                 style={styles.photo}
                 resizeMode="cover"
+                defaultSource={{ uri: PLACEHOLDER_IMAGES.avatar }}
               />
             )}
           />

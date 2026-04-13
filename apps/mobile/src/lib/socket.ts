@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = 'ws://localhost:3001';
+const SOCKET_URL = 'wss://tsewa-api-proxy.virajsharma5599.workers.dev';
 
 let socket: Socket | null = null;
 

@@ -1,7 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../modules/auth/store';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://tsewa-api-proxy.virajsharma5599.workers.dev/api';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 import { colors } from '../../theme/colors';
 import { fontWeight } from '../../theme/typography';
+import { PLACEHOLDER_IMAGES } from '../../constants/images';
 
 type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -37,12 +38,13 @@ export function Avatar({ uri, name, size = 'md', showOnline = false }: AvatarPro
   const dimension = sizeMap[size];
   const initFontSize = fontSizeMap[size];
   const onlineDotSize = Math.max(8, dimension * 0.2);
+  const validUri = uri && uri.trim().length > 0 ? uri : null;
 
   return (
     <View style={[styles.wrapper, { width: dimension, height: dimension }]}>
-      {uri ? (
+      {validUri ? (
         <Image
-          source={{ uri }}
+          source={{ uri: validUri }}
           style={[
             styles.image,
             {
@@ -51,6 +53,7 @@ export function Avatar({ uri, name, size = 'md', showOnline = false }: AvatarPro
               borderRadius: dimension / 2,
             },
           ]}
+          defaultSource={{ uri: PLACEHOLDER_IMAGES.avatar }}
         />
       ) : (
         <View

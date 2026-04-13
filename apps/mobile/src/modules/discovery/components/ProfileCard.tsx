@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { colors } from '../../../theme/colors';
 import { typography, fontSize, fontWeight } from '../../../theme/typography';
 import { scale } from '../../../theme/responsive';
+import { PLACEHOLDER_IMAGES } from '../../../constants/images';
 import type { DeckProfile } from '../api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -92,9 +93,10 @@ export function ProfileCard({ profile, isInteractive = true }: ProfileCardProps)
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <Image
-              source={{ uri: item.url }}
+              source={{ uri: item.url || PLACEHOLDER_IMAGES.avatar }}
               style={styles.photo}
               resizeMode="cover"
+              defaultSource={{ uri: PLACEHOLDER_IMAGES.avatar }}
             />
           )}
         />

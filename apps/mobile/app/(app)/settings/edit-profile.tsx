@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { colors } from '../../../src/theme/colors';
 import { typography, fontSize, fontWeight } from '../../../src/theme/typography';
 import { scale } from '../../../src/theme/responsive';
+import { PLACEHOLDER_IMAGES } from '../../../src/constants/images';
 import { Button } from '../../../src/components/ui/Button';
 import { useProfile, useUpdateProfile } from '../../../src/modules/profile/hooks';
 import type { ProfileData } from '../../../src/modules/profile/api';
@@ -94,7 +95,7 @@ export default function EditProfileScreen() {
           <View style={styles.photoGrid}>
             {profile?.photos?.map((photo, index) => (
               <View key={photo.id} style={styles.photoCell}>
-                <Image source={{ uri: photo.url }} style={styles.photoImage} />
+                <Image source={{ uri: photo.url || PLACEHOLDER_IMAGES.avatar }} style={styles.photoImage} />
                 {photo.isMain && (
                   <View style={styles.mainBadge}>
                     <Text style={styles.mainBadgeText}>Main</Text>

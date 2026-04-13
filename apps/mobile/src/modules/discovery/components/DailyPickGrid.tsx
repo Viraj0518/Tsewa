@@ -13,6 +13,7 @@ import { colors } from '../../../theme/colors';
 import { typography, fontSize, fontWeight } from '../../../theme/typography';
 import { scale } from '../../../theme/responsive';
 import { useResponsive } from '../../../theme/responsive';
+import { PLACEHOLDER_IMAGES } from '../../../constants/images';
 import type { DeckProfile } from '../api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -88,7 +89,7 @@ function PickCard({ profile, cardWidth }: { profile: DeckProfile; cardWidth: num
       onPress={() => router.push(`/profile-view/${profile.userId}`)}
     >
       <Image
-        source={{ uri: mainPhoto?.url }}
+        source={{ uri: mainPhoto?.url || PLACEHOLDER_IMAGES.avatar }}
         style={[styles.pickPhoto, { width: cardWidth, height: cardWidth * 1.3 }]}
         resizeMode="cover"
       />
