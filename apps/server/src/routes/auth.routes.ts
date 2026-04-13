@@ -32,7 +32,7 @@ const refreshLimiter = rateLimit({
 });
 
 const registerSchema = z.object({
-  email: z.string().trim().transform(s => s.toLowerCase()).pipe(z.string().email('Invalid email address')),
+  email: z.string().trim().email('Invalid email address'),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
@@ -41,7 +41,7 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-  email: z.string().trim().transform(s => s.toLowerCase()).pipe(z.string().email('Invalid email address')),
+  email: z.string().trim().email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -52,6 +52,7 @@ const refreshSchema = z.object({
 // POST /api/auth/register
 router.post('/register', registerLimiter, async (req: Request, res: Response) => {
   try {
+    if (req.body?.email) req.body.email = req.body.email.trim().toLowerCase();
     const parsed = registerSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: 'Validation failed', details: parsed.error.flatten() });
@@ -84,6 +85,7 @@ router.post('/register', registerLimiter, async (req: Request, res: Response) =>
 // POST /api/auth/login
 router.post('/login', loginLimiter, async (req: Request, res: Response) => {
   try {
+    if (req.body?.email) req.body.email = req.body.email.trim().toLowerCase();
     const parsed = loginSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: 'Validation failed', details: parsed.error.flatten() });
