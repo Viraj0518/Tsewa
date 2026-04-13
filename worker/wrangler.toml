@@ -1,0 +1,6 @@
+name = "tsewa-api-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+TUNNEL_URL = "https://fairy-head-pleasant-randy.trycloudflare.com"

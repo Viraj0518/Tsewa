@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Pressable, Text, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { MotiView } from 'moti';
+import { X, Star, Heart } from 'lucide-react-native';
 import { colors } from '../../../theme/colors';
 import { scale } from '../../../theme/responsive';
 import type { SwipeDeckRef } from './SwipeDeck';
@@ -11,14 +12,14 @@ interface ActionButtonsProps {
 }
 
 function ActionButton({
-  emoji,
+  icon: Icon,
   color,
   filled,
   size,
   onPress,
   disabled,
 }: {
-  emoji: string;
+  icon: React.ComponentType<{ size: number; color: string; strokeWidth?: number }>;
   color: string;
   filled: boolean;
   size: number;
@@ -46,7 +47,7 @@ function ActionButton({
             },
           ]}
         >
-          <Text style={[styles.emoji, { fontSize: size * 0.4, color: filled ? colors.white : color }]}>{emoji}</Text>
+          <Icon size={size * 0.4} color={filled ? colors.white : color} strokeWidth={2.5} />
         </MotiView>
       )}
     </Pressable>
@@ -69,7 +70,7 @@ export function ActionButtons({ deckRef, disabled = false }: ActionButtonsProps)
   return (
     <View style={styles.container}>
       <ActionButton
-        emoji="✕"
+        icon={X}
         color={colors.error}
         filled={false}
         size={scale(56)}
@@ -77,7 +78,7 @@ export function ActionButtons({ deckRef, disabled = false }: ActionButtonsProps)
         disabled={disabled}
       />
       <ActionButton
-        emoji="★"
+        icon={Star}
         color={colors.lavender}
         filled={false}
         size={scale(48)}
@@ -85,7 +86,7 @@ export function ActionButtons({ deckRef, disabled = false }: ActionButtonsProps)
         disabled={disabled}
       />
       <ActionButton
-        emoji="♥"
+        icon={Heart}
         color={colors.success}
         filled={true}
         size={scale(56)}
