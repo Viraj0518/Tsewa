@@ -12,10 +12,13 @@ datasource db {
 // ========================
 
 enum Region {
-  U_TSANG
-  KHAM
-  AMDO
-  DIASPORA
+  INDIA
+  NEPAL
+  NORTH_AMERICA
+  EUROPE
+  AUSTRALIA_NZ
+  EAST_ASIA
+  TIBET
 }
 
 enum Dialect {

@@ -37,10 +37,13 @@ function calculateAge(birthDate: string): number {
 }
 
 const REGION_COLORS: Record<string, string> = {
-  'U-Tsang': colors.lavender,
-  'Kham': colors.peach,
-  'Amdo': '#6BBFA3',
-  'Diaspora': colors.lavenderDark,
+  'India': colors.peach,
+  'Nepal': '#6BBFA3',
+  'North America': colors.lavender,
+  'Europe': colors.lavenderDark,
+  'Australia & NZ': '#5BA8C8',
+  'East Asia': '#E8A87C',
+  'Tibet': '#C4A35A',
 };
 
 function RegionBadge({ region }: { region: string }) {

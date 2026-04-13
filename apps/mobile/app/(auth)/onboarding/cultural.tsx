@@ -19,10 +19,13 @@ import { scale } from '../../../src/theme/responsive';
 import { typography, fontSize, fontWeight } from '../../../src/theme/typography';
 
 const REGIONS = [
-  { value: 'U-Tsang', label: 'U-Tsang', tibetan: '\u0F51\u0F56\u0F74\u0F66\u0F0B\u0F42\u0F59\u0F44' },
-  { value: 'Kham', label: 'Kham', tibetan: '\u0F41\u0F58\u0F66' },
-  { value: 'Amdo', label: 'Amdo', tibetan: '\u0F68\u0F0B\u0F58\u0F51\u0F7C' },
-  { value: 'Diaspora', label: 'Diaspora', tibetan: '\u0F58\u0F50\u0F60\u0F0B\u0F60\u0F41\u0F7C\u0F62' },
+  { value: 'India', label: 'India', tibetan: '\u0F62\u0F92\u0FB1\u0F0B\u0F42\u0F62' },
+  { value: 'Nepal', label: 'Nepal', tibetan: '\u0F56\u0F63\u0F0B\u0F61\u0F74\u0F63' },
+  { value: 'North America', label: 'North America', tibetan: '\u0F56\u0FB1\u0F44\u0F0B\u0F68\u0F0B\u0F58\u0F7A\u0F0B\u0F62\u0F72\u0F0B\u0F40' },
+  { value: 'Europe', label: 'Europe', tibetan: '\u0F61\u0F74\u0F0B\u0F62\u0F7C\u0F56' },
+  { value: 'Australia & NZ', label: 'Australia & NZ', tibetan: '\u0F68\u0F7C\u0F0B\u0F66\u0F72\u0F0B\u0F4A\u0F72\u0F0B\u0F63\u0F72\u0F0B\u0F61' },
+  { value: 'East Asia', label: 'East Asia', tibetan: '\u0F64\u0F62\u0F0B\u0F68\u0F7A\u0F0B\u0F64\u0F72\u0F0B\u0F61' },
+  { value: 'Tibet', label: 'Tibet', tibetan: '\u0F56\u0F7C\u0F51' },
 ] as const;
 
 const DIALECTS = ['Lhasa', 'Kham', 'Amdo', 'Other'] as const;

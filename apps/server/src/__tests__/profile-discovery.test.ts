@@ -21,7 +21,7 @@ function baseProfile(overrides: Record<string, unknown> = {}) {
     displayName: 'Tenzin',
     birthDate: '2000-06-15T00:00:00.000Z',
     gender: 'male',
-    region: 'KHAM',
+    region: 'INDIA',
     ...overrides,
   };
 }
@@ -161,7 +161,7 @@ describe('Profile & Discovery E2E', () => {
       expect(res.status).toBe(200);
       expect(res.body.displayName).toBe('Tenzin');
       expect(res.body.gender).toBe('male');
-      expect(res.body.region).toBe('KHAM');
+      expect(res.body.region).toBe('INDIA');
       expect(res.body.bio).toBe('Love hiking in the mountains');
       expect(res.body.hometown).toBe('Lhasa');
       expect(res.body.userId).toBe(userId);
@@ -175,7 +175,7 @@ describe('Profile & Discovery E2E', () => {
       expect(res.status).toBe(200);
       expect(res.body.profile).toBeTruthy();
       expect(res.body.profile.displayName).toBe('Tenzin');
-      expect(res.body.profile.region).toBe('KHAM');
+      expect(res.body.profile.region).toBe('INDIA');
     });
 
     it('PUT /api/profile — updates individual fields', async () => {
@@ -198,6 +198,7 @@ describe('Profile & Discovery E2E', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.dialect).toBe('KHAM');
+      // Note: KHAM dialect is unchanged (linguistic, not geographic)
     });
 
     it('PUT /api/profile — updates buddhaPractice', async () => {
@@ -255,7 +256,7 @@ describe('Profile & Discovery E2E', () => {
           ageMin: 22,
           ageMax: 35,
           maxDistance: 200,
-          regionFilter: ['KHAM', 'AMDO'],
+          regionFilter: ['INDIA', 'NEPAL'],
         });
 
       expect(res.status).toBe(200);
@@ -263,7 +264,7 @@ describe('Profile & Discovery E2E', () => {
       expect(res.body.ageMin).toBe(22);
       expect(res.body.ageMax).toBe(35);
       expect(res.body.maxDistance).toBe(200);
-      expect(res.body.regionFilter).toEqual(expect.arrayContaining(['KHAM', 'AMDO']));
+      expect(res.body.regionFilter).toEqual(expect.arrayContaining(['INDIA', 'NEPAL']));
     });
 
     it('PUT /api/profile — updates languages array', async () => {
@@ -676,7 +677,7 @@ describe('Profile & Discovery E2E', () => {
       userAToken = regA.accessToken;
       userAId = regA.user.id;
 
-      // Create profile for user A (male, looking for female, KHAM region)
+      // Create profile for user A (male, looking for female, INDIA region)
       await request(app)
         .put('/api/profile')
         .set(authHeader(userAToken))
@@ -684,7 +685,7 @@ describe('Profile & Discovery E2E', () => {
           baseProfile({
             displayName: 'User A',
             gender: 'male',
-            region: 'KHAM',
+            region: 'INDIA',
             lookingForGender: ['female'],
             ageMin: 18,
             ageMax: 50,
@@ -693,7 +694,7 @@ describe('Profile & Discovery E2E', () => {
           }),
         );
 
-      // User B: female in KHAM (should appear in A's deck)
+      // User B: female in INDIA (should appear in A's deck)
       const regB = await registerActiveUser('disc_b');
       userBId = regB.user.id;
       await request(app)
@@ -703,13 +704,13 @@ describe('Profile & Discovery E2E', () => {
           baseProfile({
             displayName: 'User B',
             gender: 'female',
-            region: 'KHAM',
+            region: 'INDIA',
             birthDate: '1998-01-01T00:00:00.000Z',
             activeCategories: ['dating'],
           }),
         );
 
-      // User C: male in KHAM (should NOT appear — A is looking for female)
+      // User C: male in INDIA (should NOT appear — A is looking for female)
       const regC = await registerActiveUser('disc_c');
       await request(app)
         .put('/api/profile')
@@ -718,12 +719,12 @@ describe('Profile & Discovery E2E', () => {
           baseProfile({
             displayName: 'User C',
             gender: 'male',
-            region: 'KHAM',
+            region: 'INDIA',
             birthDate: '1995-03-15T00:00:00.000Z',
           }),
         );
 
-      // User D: female in AMDO (should appear when no region filter set)
+      // User D: female in NEPAL (should appear when no region filter set)
       const regD = await registerActiveUser('disc_d');
       await request(app)
         .put('/api/profile')
@@ -732,7 +733,7 @@ describe('Profile & Discovery E2E', () => {
           baseProfile({
             displayName: 'User D',
             gender: 'female',
-            region: 'AMDO',
+            region: 'NEPAL',
             birthDate: '1999-07-20T00:00:00.000Z',
             activeCategories: ['networking'],
           }),
@@ -860,11 +861,11 @@ describe('Profile & Discovery E2E', () => {
     });
 
     it('GET /api/discovery/deck — region filter narrows results', async () => {
-      // Update user A to filter by KHAM only
+      // Update user A to filter by INDIA only
       await request(app)
         .put('/api/profile')
         .set(authHeader(userAToken))
-        .send({ regionFilter: ['KHAM'] });
+        .send({ regionFilter: ['INDIA'] });
 
       const res = await request(app)
         .get('/api/discovery/deck')
@@ -872,7 +873,7 @@ describe('Profile & Discovery E2E', () => {
 
       expect(res.status).toBe(200);
       for (const p of res.body.profiles) {
-        expect(p.region).toBe('KHAM');
+        expect(p.region).toBe('INDIA');
       }
 
       // Reset region filter for other tests
@@ -900,7 +901,7 @@ describe('Profile & Discovery E2E', () => {
           baseProfile({
             displayName: 'Daily User',
             gender: 'male',
-            region: 'AMDO',
+            region: 'INDIA',
           }),
         );
     });

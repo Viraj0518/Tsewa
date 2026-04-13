@@ -26,10 +26,13 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PHOTO_HEIGHT = SCREEN_WIDTH * 1.1;
 
 const REGION_COLORS: Record<string, string> = {
-  'U-Tsang': colors.lavender,
-  'Kham': colors.peach,
-  'Amdo': '#6BBFA3',
-  'Diaspora': colors.lavenderDark,
+  'India': colors.peach,
+  'Nepal': '#6BBFA3',
+  'North America': colors.lavender,
+  'Europe': colors.lavenderDark,
+  'Australia & NZ': '#5BA8C8',
+  'East Asia': '#E8A87C',
+  'Tibet': '#C4A35A',
 };
 
 function calculateAge(birthDate: string): number {

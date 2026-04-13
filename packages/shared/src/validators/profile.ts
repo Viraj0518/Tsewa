@@ -9,7 +9,7 @@ export const profileBasicsSchema = z.object({
 });
 
 export const profileCulturalSchema = z.object({
-  region: z.enum(['U_TSANG', 'KHAM', 'AMDO', 'DIASPORA']),
+  region: z.enum(['INDIA', 'NEPAL', 'NORTH_AMERICA', 'EUROPE', 'AUSTRALIA_NZ', 'EAST_ASIA', 'TIBET']),
   dialect: z.enum(['LHASA', 'KHAM', 'AMDO', 'OTHER']).optional(),
   buddhaPractice: z.enum(['GELUG', 'KAGYU', 'NYINGMA', 'SAKYA', 'BON', 'SECULAR', 'OTHER']).optional(),
   hometown: z.string().max(100).optional(),

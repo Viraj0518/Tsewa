@@ -387,7 +387,7 @@ The database contains **22 models** organized into 7 domains:
 | gender | String | male, female, non-binary, other |
 | bio | Text | Optional bio (500 chars) |
 | height | Int | Height in cm (optional) |
-| region | Enum | U_TSANG, KHAM, AMDO, DIASPORA |
+| region | Enum | INDIA, NEPAL, NORTH_AMERICA, EUROPE, AUSTRALIA_NZ, EAST_ASIA, TIBET |
 | dialect | Enum | LHASA, KHAM, AMDO, OTHER |
 | buddhaPractice | Enum | GELUG, KAGYU, NYINGMA, SAKYA, BON, SECULAR, OTHER |
 | hometown | String | Hometown (optional) |

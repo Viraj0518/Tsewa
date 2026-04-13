@@ -1,8 +1,11 @@
 export const REGIONS = [
-  { id: 'U_TSANG', label: 'U-Tsang', labelTib: 'དབུས་གཙང' },
-  { id: 'KHAM', label: 'Kham', labelTib: 'ཁམས' },
-  { id: 'AMDO', label: 'Amdo', labelTib: 'ཨ་མདོ' },
-  { id: 'DIASPORA', label: 'Diaspora', labelTib: 'མཐའ་འཁོར' },
+  { id: 'INDIA', label: 'India', labelTib: 'རྒྱ་གར' },
+  { id: 'NEPAL', label: 'Nepal', labelTib: 'བལ་ཡུལ' },
+  { id: 'NORTH_AMERICA', label: 'North America', labelTib: 'བྱང་ཨ་མེ་རི་ཀ' },
+  { id: 'EUROPE', label: 'Europe', labelTib: 'ཡུ་རོབ' },
+  { id: 'AUSTRALIA_NZ', label: 'Australia & NZ', labelTib: 'ཨོ་སི་ཊི་ལི་ཡ' },
+  { id: 'EAST_ASIA', label: 'East Asia', labelTib: 'ཤར་ཨེ་ཤི་ཡ' },
+  { id: 'TIBET', label: 'Tibet', labelTib: 'བོད' },
 ] as const;
 
 export const DIALECTS = [

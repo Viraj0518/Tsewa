@@ -16,7 +16,7 @@ const updateProfileSchema = z.object({
   gender: z.string().optional(),
   bio: z.string().max(500).optional().nullable(),
   height: z.number().int().min(100).max(250).optional().nullable(),
-  region: z.enum(['U_TSANG', 'KHAM', 'AMDO', 'DIASPORA']).optional(),
+  region: z.enum(['INDIA', 'NEPAL', 'NORTH_AMERICA', 'EUROPE', 'AUSTRALIA_NZ', 'EAST_ASIA', 'TIBET']).optional(),
   dialect: z.enum(['LHASA', 'KHAM', 'AMDO', 'OTHER']).optional().nullable(),
   buddhaPractice: z
     .enum(['GELUG', 'KAGYU', 'NYINGMA', 'SAKYA', 'BON', 'SECULAR', 'OTHER'])
@@ -41,7 +41,7 @@ const updateProfileSchema = z.object({
   ageMin: z.number().int().min(18).max(100).optional(),
   ageMax: z.number().int().min(18).max(100).optional(),
   maxDistance: z.number().int().min(1).max(500).optional(),
-  regionFilter: z.array(z.enum(['U_TSANG', 'KHAM', 'AMDO', 'DIASPORA'])).optional(),
+  regionFilter: z.array(z.enum(['INDIA', 'NEPAL', 'NORTH_AMERICA', 'EUROPE', 'AUSTRALIA_NZ', 'EAST_ASIA', 'TIBET'])).optional(),
 });
 
 const addPromptSchema = z.object({
