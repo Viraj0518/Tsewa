@@ -46,7 +46,7 @@ function ActionButton({
             },
           ]}
         >
-          <Text style={[styles.emoji, { fontSize: size * 0.4 }]}>{emoji}</Text>
+          <Text style={[styles.emoji, { fontSize: size * 0.4, color: filled ? colors.white : color }]}>{emoji}</Text>
         </MotiView>
       )}
     </Pressable>
@@ -69,7 +69,7 @@ export function ActionButtons({ deckRef, disabled = false }: ActionButtonsProps)
   return (
     <View style={styles.container}>
       <ActionButton
-        emoji="\u2715"
+        emoji="✕"
         color={colors.error}
         filled={false}
         size={scale(56)}
@@ -77,7 +77,7 @@ export function ActionButtons({ deckRef, disabled = false }: ActionButtonsProps)
         disabled={disabled}
       />
       <ActionButton
-        emoji="\u2B50"
+        emoji="★"
         color={colors.lavender}
         filled={false}
         size={scale(48)}
@@ -85,7 +85,7 @@ export function ActionButtons({ deckRef, disabled = false }: ActionButtonsProps)
         disabled={disabled}
       />
       <ActionButton
-        emoji="\u2764\uFE0F"
+        emoji="♥"
         color={colors.success}
         filled={true}
         size={scale(56)}
